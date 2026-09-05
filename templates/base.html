@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StegSuite - Multi-Format Steganography{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding-top: 70px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; height: 70px;
+            background: #1a1a2e;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .nav-logo i { font-size: 24px; color: #6c63ff; }
+        .nav-logo span { font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+
+        .nav-center { display: flex; align-items: center; }
+        .premium-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 24px;
+            background: linear-gradient(135deg, #f5af19, #f12711);
+            color: #fff; border: none; border-radius: 24px;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .premium-btn:hover { transform: scale(1.05); box-shadow: 0 4px 20px rgba(245,175,25,0.4); }
+
+        .nav-right { display: flex; align-items: center; gap: 16px; position: relative; }
+        .nav-auth-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 20px; background: transparent; color: #e0e0e0;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            text-decoration: none;
+        }
+        .nav-auth-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.4); }
+        .nav-auth-btn.signup { background: #6c63ff; border-color: #6c63ff; color: #fff; }
+        .nav-auth-btn.signup:hover { background: #5a52d5; }
+
+        /* User Dropdown Profile */
+        .user-profile {
+            display: flex; align-items: center; gap: 10px; font-size: 14px; color: #b0b0cc;
+            cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background 0.3s;
+        }
+        .user-profile:hover { background: rgba(255,255,255,0.05); }
+        .user-profile i.fa-user-circle { color: #6c63ff; font-size: 22px; }
+        .user-profile i.fa-chevron-down { font-size: 10px; transition: transform 0.3s; }
+        .user-profile.active i.fa-chevron-down { transform: rotate(180deg); }
+        
+        .user-dropdown {
+            position: absolute; top: 50px; right: 0; background: #1a1a2e;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 8px 0; min-width: 160px;
+            opacity: 0; visibility: hidden; transform: translateY(-10px);
+            transition: all 0.3s; z-index: 1001;
+        }
+        .user-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 20px; color: #e0e0e0; text-decoration: none;
+            font-size: 14px; transition: background 0.3s;
+        }
+        .dropdown-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .dropdown-item.logout { color: #ff8888; }
+        .dropdown-item.logout:hover { background: rgba(231,76,60,0.1); color: #ffaaaa; }
+
+        /* ===== FOOTER ===== */
+        .footer { text-align: center; padding: 40px; color: rgba(255,255,255,0.15); font-size: 0.85rem; margin-top: auto; }
+
+        /* ===== FLASH MESSAGES ===== */
+        .flash-messages { max-width: 500px; margin: 0 auto; width: 100%; padding: 15px 20px 0; }
+        .flash-message {
+            padding: 14px 18px; border-radius: 10px; margin-bottom: 10px;
+            font-weight: 600; font-size: 14px;
+            animation: flashIn 0.3s ease;
+        }
+        @keyframes flashIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .flash-error { background: rgba(231,76,60,0.15); border: 1px solid rgba(231,76,60,0.3); color: #ff8888; }
+        .flash-success { background: rgba(46,204,113,0.15); border: 1px solid rgba(46,204,113,0.3); color: #88ff88; }
+
+        @media (max-width: 900px) { .navbar { padding: 0 15px; } }
+        @media (max-width: 600px) { 
+            .nav-auth-btn span { display: none; } 
+            .nav-auth-btn { padding: 8px 12px; }
+            .nav-logo span { font-size: 1.05rem; } /* Reduce StegSuite logo size further */
+            .nav-logo i { font-size: 18px; }
+            .premium-btn { padding: 6px 12px; font-size: 11px; } /* Shrink premium button */
+            .user-profile .email-text { display: none; } /* Hide email on mobile to save space */
+            .user-profile { padding: 6px; }
+            .nav-right { gap: 10px; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-logo"><i class="fas fa-shield-alt"></i><span>StegSuite</span></a>
+        <div class="nav-center"><button class="premium-btn"><i class="fas fa-star"></i> Premium</button></div>
+        <div class="nav-right">
+            {% if current_user.is_authenticated %}
+                <div class="user-profile" id="userProfileBtn">
+                    <i class="fas fa-user-circle"></i> 
+                    <span class="email-text">{{ current_user.email }}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-item" style="color:#8888aa; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:4px; pointer-events:none;">
+                        <span class="email-text-mobile" style="font-size:0.85rem; word-break:break-all;">{{ current_user.email }}</span>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="dropdown-item logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="nav-auth-btn"><i class="fas fa-sign-in-alt"></i><span>Login</span></a>
+                <a href="{{ url_for('signup') }}" class="nav-auth-btn signup"><i class="fas fa-user-plus"></i><span>Sign Up</span></a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+    <div class="footer"><p>&copy; 2026 StegSuite. All rights reserved.</p></div>
+    
+    <script>
+        const profileBtn = document.getElementById('userProfileBtn');
+        const dropdown = document.getElementById('userDropdown');
+        
+        if (profileBtn && dropdown) {
+            profileBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.classList.toggle('active');
+                dropdown.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!dropdown.contains(e.target)) {
+                    profileBtn.classList.remove('active');
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+{% block title %}{{ type|capitalize }} Steganography - StegSuite{% endblock %}
+{% block extra_css %}
+<style>
+    .stego-page { padding: 30px 20px; max-width: 700px; margin: 0 auto; width: 100%; }
+
+    .back-link {
+        display: inline-flex; align-items: center; gap: 8px;
+        color: #8888aa; text-decoration: none; font-weight: 600;
+        font-size: 14px; transition: color 0.3s; margin-bottom: 24px;
+    }
+    .back-link:hover { color: #fff; }
+
+    .stego-header { text-align: center; margin-bottom: 28px; }
+    .stego-header h2 {
+        font-size: 1.8rem; color: #fff; margin-bottom: 6px;
+        display: flex; align-items: center; justify-content: center; gap: 14px;
+    }
+    .stego-header .subtitle { color: #8888aa; font-size: 0.95rem; }
+    .icon-image { color: #4fc3f7; }
+    .icon-audio { color: #ce93d8; }
+    .icon-video { color: #ef9a9a; }
+    .icon-text  { color: #a5d6a7; }
+
+    /* Mode Toggle */
+    .mode-toggle {
+        display: flex; background: rgba(255,255,255,0.04);
+        border-radius: 14px; padding: 5px; margin-bottom: 28px;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .mode-toggle a {
+        flex: 1; text-align: center; padding: 12px 20px;
+        color: #8888aa; text-decoration: none; font-weight: 600;
+        border-radius: 10px; transition: all 0.3s; font-size: 14px;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .mode-toggle a:hover { color: #ccc; background: rgba(255,255,255,0.04); }
+    .mode-toggle a.active {
+        background: #6c63ff; color: #fff;
+        box-shadow: 0 4px 15px rgba(108,99,255,0.3);
+    }
+
+    /* Form Card */
+    .form-card {
+        background: #1a1a2e; border-radius: 20px; padding: 36px;
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .form-group { margin-bottom: 22px; }
+    .form-group label {
+        display: block; margin-bottom: 8px; color: #9999bb;
+        font-weight: 600; font-size: 13px; text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Styled File Upload */
+    .file-upload-area {
+        border: 2px dashed rgba(108,99,255,0.3);
+        border-radius: 14px; padding: 32px 20px;
+        text-align: center; cursor: pointer;
+        transition: all 0.3s;
+        background: rgba(108,99,255,0.03);
+        position: relative;
+    }
+    .file-upload-area:hover {
+        border-color: #6c63ff;
+        background: rgba(108,99,255,0.06);
+    }
+    .file-upload-area.has-file {
+        border-color: #2ecc71; background: rgba(46,204,113,0.06);
+    }
+    .file-upload-area i.upload-icon {
+        font-size: 32px; color: #6c63ff; margin-bottom: 12px; display: block;
+    }
+    .file-upload-area .upload-text {
+        font-size: 14px; color: #8888aa; margin-bottom: 4px;
+    }
+    .file-upload-area .upload-hint {
+        font-size: 12px; color: #555577;
+    }
+    .file-upload-area .file-name {
+        font-size: 14px; color: #2ecc71; font-weight: 600;
+        display: none; margin-top: 8px;
+    }
+    .file-upload-area.has-file .file-name { display: block; }
+    .file-upload-area.has-file .upload-text,
+    .file-upload-area.has-file .upload-hint { display: none; }
+    .file-upload-area.has-file i.upload-icon { color: #2ecc71; }
+    .file-upload-area input[type="file"] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    textarea, select {
+        width: 100%; padding: 14px 16px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px; color: #e0e0e0;
+        font-size: 15px; font-family: inherit;
+        transition: all 0.3s;
+    }
+    textarea:focus, select:focus {
+        outline: none; border-color: #6c63ff;
+        box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+        background: rgba(255,255,255,0.06);
+    }
+    textarea { min-height: 120px; resize: vertical; font-family: 'Courier New', monospace; }
+    textarea::placeholder { color: #555577; }
+    select { cursor: pointer; }
+    select option { background: #1a1a2e; color: #e0e0e0; }
+
+    .btn-submit {
+        width: 100%; padding: 16px;
+        background: #6c63ff; color: #fff;
+        border: none; border-radius: 12px;
+        font-size: 16px; font-weight: 700;
+        cursor: pointer; transition: all 0.3s;
+        font-family: inherit; margin-top: 8px;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-submit:hover {
+        background: #5a52d5; transform: translateY(-1px);
+        box-shadow: 0 6px 25px rgba(108,99,255,0.35);
+    }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .result-box {
+        margin-top: 24px; padding: 20px; border-radius: 14px;
+        border-left: 4px solid #6c63ff; display: none;
+        word-wrap: break-word; font-weight: 500; color: #e0e0e0;
+        background: rgba(255,255,255,0.03);
+        animation: resultIn 0.3s ease;
+    }
+    @keyframes resultIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .result-box.show { display: block; }
+    .result-box.success { border-left-color: #2ecc71; background: rgba(46,204,113,0.08); }
+    .result-box.error { border-left-color: #e74c3c; background: rgba(231,76,60,0.08); }
+
+    .download-link {
+        display: inline-flex; align-items: center; gap: 8px;
+        margin-top: 14px; padding: 12px 24px;
+        background: #2ecc71; color: #fff; text-decoration: none;
+        border-radius: 10px; font-weight: 600; transition: all 0.3s;
+        border: none; cursor: pointer; font-size: 14px;
+    }
+    .download-link:hover { background: #27ae60; transform: translateY(-1px); }
+
+    @media (max-width: 600px) {
+        .stego-page { padding: 20px 15px; }
+        .form-card { padding: 24px 20px; }
+        .stego-header h2 { font-size: 1.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stego-page">
+    <a href="{{ url_for('index') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Categories</a>
+
+    <div class="stego-header">
+        <h2>
+            {% if type == 'image' %}<i class="fas fa-image icon-image"></i>
+            {% elif type == 'audio' %}<i class="fas fa-headphones icon-audio"></i>
+            {% elif type == 'video' %}<i class="fas fa-film icon-video"></i>
+            {% elif type == 'text' %}<i class="fas fa-paragraph icon-text"></i>
+            {% endif %}
+            {{ type|capitalize }} Steganography
+        </h2>
+        <p class="subtitle">{% if mode == 'encode' %}Hide your secret messages{% else %}Extract hidden messages{% endif %}</p>
+    </div>
+
+    <div class="mode-toggle">
+        <a href="?mode=encode" class="{% if mode == 'encode' %}active{% endif %}"><i class="fas fa-lock"></i> Encode</a>
+        <a href="?mode=decode" class="{% if mode == 'decode' %}active{% endif %}"><i class="fas fa-unlock"></i> Decode</a>
+    </div>
+
+    <div class="form-card">
+        {% if mode == 'encode' %}
+        <form id="encodeForm">
+            {% if type == 'image' %}
+                <div class="form-group">
+                    <label>Cover Image</label>
+                    <div class="file-upload-area" id="fileDropArea">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div class="upload-text">Click to upload or drag & drop</div>
+                        <div class="upload-hint">PNG, JPG, BMP supported</div>
+                        <div class="file-name" id="fileName"></div>
+                        <input type="file" id="encodeFile" accept="image/*" required>
+                    </div>
+                </div>
+            {% elif type == 'audio' %}
+                <div class="form-group">
+                    <label>Cover Audio</label>
+                    <div class="file-upload-area" id="fileDropArea">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div class="upload-text">Click to upload or drag & drop</div>
+                        <div class="upload-hint">WAV files only</div>
+                        <div class="file-name" id="fileName"></div>
+                        <input type="file" id="encodeFile" accept=".wav" required>
+                    </div>
+                </div>
+            {% elif type == 'video' %}
+                <div class="form-group">
+                    <label>Cover Video</label>
+                    <div class="file-upload-area" id="fileDropArea">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div class="upload-text">Click to upload or drag & drop</div>
+                        <div class="upload-hint">MP4, AVI, MOV supported</div>
+                        <div class="file-name" id="fileName"></div>
+                        <input type="file" id="encodeFile" accept=".mp4,.avi,.mov" required>
+                    </div>
+                </div>
+            {% elif type == 'text' %}
+                <div class="form-group">
+                    <label>Cover Text</label>
+                    <textarea id="textCover" placeholder="Write a normal-looking paragraph..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Method</label>
+                    <select id="textEncodeMethod">
+                        <option value="zwsp">Zero-Width Characters (Invisible)</option>
+                        <option value="whitespace">Whitespace (Spaces vs Tabs)</option>
+                        <option value="formatting">HTML Formatting (Bold/Italic)</option>
+                    </select>
+                </div>
+            {% endif %}
+            <div class="form-group">
+                <label>Secret Message</label>
+                <textarea id="encodeMsg" placeholder="Type your secret message here..." required></textarea>
+            </div>
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-lock"></i> Generate Stego {{ type|capitalize }}
+            </button>
+        </form>
+        {% else %}
+        <form id="decodeForm">
+            {% if type == 'text' %}
+                <div class="form-group">
+                    <label>Stego Text</label>
+                    <textarea id="decodeInput" placeholder="Paste the stego text here..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Method</label>
+                    <select id="textDecodeMethod">
+                        <option value="zwsp">Zero-Width Characters</option>
+                        <option value="whitespace">Whitespace (Spaces vs Tabs)</option>
+                        <option value="formatting">HTML Formatting</option>
+                    </select>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <label>Stego {{ type|capitalize }}</label>
+                    <div class="file-upload-area" id="fileDropArea">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div class="upload-text">Click to upload or drag & drop</div>
+                        <div class="upload-hint">Upload the file containing hidden data</div>
+                        <div class="file-name" id="fileName"></div>
+                        <input type="file" id="decodeFile" required
+                            {% if type == 'image' %}accept="image/*"
+                            {% elif type == 'audio' %}accept=".wav"
+                            {% elif type == 'video' %}accept=".mp4,.avi,.mov"
+                            {% endif %}
+                        >
+                    </div>
+                </div>
+            {% endif %}
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-unlock"></i> Extract Message
+            </button>
+        </form>
+        {% endif %}
+        <div id="resultBox" class="result-box"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const type = "{{ type }}";
+const mode = "{{ mode }}";
+
+// File upload area interactivity
+const fileInput = document.querySelector('.file-upload-area input[type="file"]');
+if (fileInput) {
+    fileInput.addEventListener('change', function() {
+        const area = document.getElementById('fileDropArea');
+        const nameEl = document.getElementById('fileName');
+        if (this.files.length > 0) {
+            area.classList.add('has-file');
+            nameEl.textContent = this.files[0].name;
+        } else {
+            area.classList.remove('has-file');
+        }
+    });
+}
+
+function showResult(success, message, downloadUrl) {
+    const el = document.getElementById('resultBox');
+    el.className = 'result-box show ' + (success ? 'success' : 'error');
+    if (success) {
+        let html = '&#x2705; ' + message;
+        if (downloadUrl) {
+            html += '<br><a href="' + downloadUrl + '" class="download-link" download><i class="fas fa-download"></i> Download File</a>';
+        }
+        if (type === 'text' && mode === 'encode' && !downloadUrl) {
+            const stegoText = message;
+            html = '&#x2705; Stego text generated!';
+            html += '<br><textarea style="width:100%;margin-top:14px;background:rgba(255,255,255,0.04);color:#e0e0e0;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-family:monospace;font-size:13px;" rows="5" readonly>' + stegoText + '</textarea>';
+            html += '<br><button onclick="navigator.clipboard.writeText(this.previousElementSibling.value)" class="download-link" style="margin-top:10px;background:#6c63ff;"><i class="fas fa-copy"></i> Copy to Clipboard</button>';
+        }
+        el.innerHTML = html;
+    } else {
+        el.innerHTML = '&#x274C; Error: ' + message;
+    }
+}
+
+function setLoading(loading) {
+    const btn = document.getElementById('submitBtn');
+    if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    } else {
+        btn.disabled = false;
+        if (mode === 'encode') btn.innerHTML = '<i class="fas fa-lock"></i> Generate Stego ' + type.charAt(0).toUpperCase() + type.slice(1);
+        else btn.innerHTML = '<i class="fas fa-unlock"></i> Extract Message';
+    }
+}
+
+if (mode === 'encode') {
+    const form = document.getElementById('encodeForm');
+    if (form) form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            if (type === 'text') {
+                const payload = { cover_text: document.getElementById('textCover').value, message: document.getElementById('encodeMsg').value, method: document.getElementById('textEncodeMethod').value };
+                const res = await fetch('/encode/text', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.success) showResult(true, result.stego_text);
+                else showResult(false, result.error);
+            } else {
+                const fd = new FormData();
+                fd.append(type, document.getElementById('encodeFile').files[0]);
+                fd.append('message', document.getElementById('encodeMsg').value);
+                const res = await fetch('/encode/' + type, { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) showResult(true, type.charAt(0).toUpperCase() + type.slice(1) + ' encoded successfully!', data.download_url);
+                else showResult(false, data.error);
+            }
+        } catch(err) { showResult(false, 'Network or server error.'); }
+        setLoading(false);
+    });
+} else {
+    const form = document.getElementById('decodeForm');
+    if (form) form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            if (type === 'text') {
+                const payload = { stego_text: document.getElementById('decodeInput').value, method: document.getElementById('textDecodeMethod').value };
+                const res = await fetch('/decode/text', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.success) showResult(true, 'Hidden Message: ' + result.message);
+                else showResult(false, result.error);
+            } else {
+                const fd = new FormData();
+                fd.append(type, document.getElementById('decodeFile').files[0]);
+                const res = await fetch('/decode/' + type, { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) showResult(true, 'Hidden Message: <strong>' + data.message + '</strong>');
+                else showResult(false, data.error);
+            }
+        } catch(err) { showResult(false, 'Network or server error.'); }
+        setLoading(false);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Sign Up - StegSuite{% endblock %}
+{% block extra_css %}
+<style>
+    .auth-page {
+        display: flex; align-items: center; justify-content: center;
+        min-height: calc(100vh - 150px); padding: 40px 20px;
+    }
+    .auth-card {
+        width: 100%; max-width: 420px;
+        background: #1a1a2e;
+        border-radius: 20px; padding: 48px 40px;
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .auth-card h2 {
+        text-align: center; font-size: 1.8rem; color: #fff;
+        margin-bottom: 8px;
+    }
+    .auth-card .auth-subtitle {
+        text-align: center; color: #8888aa; font-size: 0.9rem;
+        margin-bottom: 32px;
+    }
+    .input-group { position: relative; margin-bottom: 20px; }
+    .input-group label {
+        display: block; margin-bottom: 8px; color: #9999bb;
+        font-weight: 600; font-size: 13px; text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    .input-wrapper i {
+        position: absolute; left: 16px;
+        font-size: 15px; z-index: 1; color: #666688;
+    }
+    .input-wrapper input {
+        width: 100%; padding: 14px 16px 14px 46px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px; color: #e0e0e0;
+        font-size: 15px; font-family: inherit;
+        transition: all 0.3s;
+    }
+    .input-wrapper input:focus {
+        outline: none; border-color: #6c63ff;
+        box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+        background: rgba(255,255,255,0.06);
+    }
+    .input-wrapper input::placeholder { color: #555577; }
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .btn-primary {
+        width: 100%; padding: 14px;
+        background: #6c63ff; color: #fff;
+        border: none; border-radius: 12px;
+        font-size: 16px; font-weight: 700;
+        cursor: pointer; transition: all 0.3s;
+        font-family: inherit; margin-top: 8px;
+    }
+    .btn-primary:hover {
+        background: #5a52d5; transform: translateY(-1px);
+        box-shadow: 0 6px 25px rgba(108,99,255,0.35);
+    }
+    .divider {
+        display: flex; align-items: center;
+        margin: 28px 0; color: #555577; font-size: 13px; font-weight: 600;
+    }
+    .divider::before, .divider::after {
+        content: ''; flex: 1;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .divider span { padding: 0 16px; }
+    .btn-google {
+        width: 100%; padding: 14px;
+        background: #fff; color: #333;
+        border: none; border-radius: 12px;
+        font-size: 15px; font-weight: 700;
+        cursor: pointer; display: flex;
+        align-items: center; justify-content: center; gap: 12px;
+        transition: all 0.3s; text-decoration: none;
+        font-family: inherit;
+    }
+    .btn-google:hover { background: #f0f0f0; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
+    .btn-google img { width: 20px; height: 20px; }
+    .auth-footer {
+        text-align: center; margin-top: 28px;
+        font-size: 14px; color: #8888aa;
+    }
+    .auth-footer a { color: #6c63ff; text-decoration: none; font-weight: 700; }
+    .auth-footer a:hover { text-decoration: underline; color: #8a83ff; }
+    .pw-hint { font-size: 12px; color: #666688; margin-top: 6px; }
+
+    @media (max-width: 500px) {
+        .auth-card { padding: 32px 20px; }
+        .input-row { grid-template-columns: 1fr; gap: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Join StegSuite to start hiding your secrets</p>
+
+        <form method="POST" action="{{ url_for('signup') }}" onsubmit="return validateForm()">
+            <div class="input-group">
+                <label>Full Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="name" placeholder="John Doe" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" placeholder="you@example.com" required>
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Min 6 chars" required minlength="6">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Confirm</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-check-circle"></i>
+                        <input type="password" id="confirm_password" placeholder="Re-enter" required minlength="6">
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary">Create Account</button>
+        </form>
+
+        <div class="divider"><span>OR</span></div>
+
+        <a href="{{ url_for('auth_google') }}" class="btn-google">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="G">
+            Continue with Google
+        </a>
+
+        <div class="auth-footer">
+            Already have an account? <a href="{{ url_for('login') }}">Log In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function validateForm() {
+    var pw = document.getElementById('password').value;
+    var cpw = document.getElementById('confirm_password').value;
+    if (pw !== cpw) { alert('Passwords do not match'); return false; }
+    return true;
+}
+</script>
+{% endblock %}

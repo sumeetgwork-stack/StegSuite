@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+stegsuite.db
+static/uploads/*
+!static/uploads/.gitkeep
