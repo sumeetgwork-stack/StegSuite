@@ -26,8 +26,8 @@ def encode_video(video_path, secret_message, output_path):
     frames_processed = 0
     bits_encoded = 0
     
-    # 4cc codec - use FFV1 for lossless compression
-    fourcc = cv2.VideoWriter_fourcc(*'FFV1')
+    # Use 0 for uncompressed AVI (guaranteed to work everywhere losslessly)
+    fourcc = 0
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
     
     while True:
@@ -81,9 +81,13 @@ def decode_video(video_path):
         for pixel in flat:
             binary += str(pixel & 1)
             # Check if we have enough bits to decode
-            if len(binary) >= 8 and binary[-8:] == '00000000':
+            if len(binary) >= 8 and len(binary) % 8 == 0:
+                if binary[-8:] == '00000000':
+                    cap.release()
+                    return binary_to_text(binary)
+            if len(binary) > 1000000:
                 cap.release()
-                return binary_to_text(binary)
+                raise ValueError("No hidden message found in this video.")
     
     cap.release()
     return binary_to_text(binary)

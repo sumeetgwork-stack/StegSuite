@@ -40,4 +40,6 @@ def decode_image(image_path):
         if len(binary) >= 8 and len(binary) % 8 == 0:
             if binary[-8:] == '00000000':
                 break
+        if len(binary) > 1000000:
+            raise ValueError("No hidden message found in this image.")
     return binary_to_text(binary)

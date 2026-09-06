@@ -53,4 +53,6 @@ def decode_audio(audio_path):
         if len(binary) >= 8 and len(binary) % 8 == 0:
             if binary[-8:] == '00000000':
                 break
+        if len(binary) > 1000000:
+            raise ValueError("No hidden message found in this file.")
     return binary_to_text(binary)
