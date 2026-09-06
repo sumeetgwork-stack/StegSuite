@@ -304,8 +304,8 @@ function showResult(success, message, downloadUrl) {
         if (type === 'text' && mode === 'encode' && !downloadUrl) {
             const stegoText = message;
             html = '&#x2705; Stego text generated!';
-            html += '<br><textarea style="width:100%;margin-top:14px;background:rgba(255,255,255,0.04);color:#e0e0e0;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-family:monospace;font-size:13px;" rows="5" readonly>' + stegoText + '</textarea>';
-            html += '<br><button onclick="navigator.clipboard.writeText(this.previousElementSibling.value)" class="download-link" style="margin-top:10px;background:#6c63ff;"><i class="fas fa-copy"></i> Copy to Clipboard</button>';
+            html += '<br><textarea id="stegoTextResult" style="width:100%;margin-top:14px;background:rgba(255,255,255,0.04);color:#e0e0e0;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px;font-family:monospace;font-size:13px;" rows="5" readonly>' + stegoText + '</textarea>';
+            html += '<br><button onclick="navigator.clipboard.writeText(document.getElementById(\'stegoTextResult\').value); alert(\'Text copied to clipboard!\');" class="download-link" style="margin-top:10px;background:#6c63ff;"><i class="fas fa-copy"></i> Copy to Clipboard</button>';
         }
         el.innerHTML = html;
     } else {
