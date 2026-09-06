@@ -16,16 +16,17 @@ def binary_to_text(binary):
 # Method 1: Zero-Width Characters (Invisible)
 def encode_text_zwsp(cover_text, secret_message):
     """
-    Uses zero-width characters (U+200B, U+200C, U+200D, U+FEFF) to hide bits
+    Uses zero-width characters to hide bits.
+    Using ZWNJ (\u200C) and ZWJ (\u200D) because some mobile clipboards strip ZWSP (\u200B).
     """
     binary_secret = text_to_binary(secret_message)
     zwsp_chars = {
-        '0': '\u200B',  # Zero-width space
-        '1': '\u200C'   # Zero-width non-joiner
+        '0': '\u200C',  # Zero-width non-joiner
+        '1': '\u200D'   # Zero-width joiner
     }
     
     if len(cover_text) < len(binary_secret):
-        raise ValueError("Cover text too short for this message!")
+        raise ValueError("Cover text too short for this message! (Need at least 1 character of cover text per 1 bit of secret message)")
     
     # Hide binary in between characters of cover text
     stego_text = ''
@@ -38,8 +39,8 @@ def encode_text_zwsp(cover_text, secret_message):
 
 def decode_text_zwsp(stego_text):
     zwsp_chars = {
-        '\u200B': '0',
-        '\u200C': '1'
+        '\u200C': '0',
+        '\u200D': '1'
     }
     
     binary = ''
@@ -52,21 +53,22 @@ def decode_text_zwsp(stego_text):
 # Method 2: Whitespace Steganography (Tabs vs Spaces)
 def encode_text_whitespace(cover_text, secret_message):
     """
-    Uses spaces vs tabs to hide bits
+    Uses normal space vs non-breaking space to hide bits
+    (More robust against copy/paste than tabs)
     """
     binary_secret = text_to_binary(secret_message)
     words = cover_text.split()
     
     if len(words) - 1 < len(binary_secret):
-        raise ValueError("Cover text too short for this message!")
+        raise ValueError("Cover text too short! Need more words.")
     
     stego_text = ''
     for i, word in enumerate(words):
         stego_text += word
         if i < len(words) - 1:
-            # Insert space (0) or tab (1)
             if i < len(binary_secret):
-                stego_text += '\t' if binary_secret[i] == '1' else ' '
+                # \u00A0 is Non-Breaking Space
+                stego_text += '\u00A0' if binary_secret[i] == '1' else ' '
             else:
                 stego_text += ' '
     
@@ -74,15 +76,14 @@ def encode_text_whitespace(cover_text, secret_message):
 
 def decode_text_whitespace(stego_text):
     binary = ''
-    # Split by spaces/tabs but keep delimiters
-    parts = re.split(r'(\s+)', stego_text)
-    
-    for part in parts:
-        if part == '\t':
+    # Find all spaces and non-breaking spaces between words
+    # A regex to match spaces (\x20) and NBSP (\xA0)
+    for char in stego_text:
+        if char == '\u00A0':
             binary += '1'
-        elif part == ' ':
+        elif char == ' ':
             binary += '0'
-    
+            
     return binary_to_text(binary)
 
 # Method 3: Text Formatting (Bold/Italic/Underline in HTML)
