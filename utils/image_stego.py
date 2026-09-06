@@ -33,5 +33,11 @@ def encode_image(image_path, secret_message, output_path):
 def decode_image(image_path):
     img = Image.open(image_path).convert('RGB')
     pixels = np.array(img).flatten()
-    binary = ''.join(str(pixel & 1) for pixel in pixels)
+    binary = ''
+    for pixel in pixels:
+        binary += str(pixel & 1)
+        # Check for null terminator every 8 bits
+        if len(binary) >= 8 and len(binary) % 8 == 0:
+            if binary[-8:] == '00000000':
+                break
     return binary_to_text(binary)

@@ -47,5 +47,10 @@ def decode_audio(audio_path):
     wav.close()
     
     audio_array = np.frombuffer(frames, dtype=np.uint8)
-    binary = ''.join(str(sample & 1) for sample in audio_array)
+    binary = ''
+    for sample in audio_array:
+        binary += str(sample & 1)
+        if len(binary) >= 8 and len(binary) % 8 == 0:
+            if binary[-8:] == '00000000':
+                break
     return binary_to_text(binary)

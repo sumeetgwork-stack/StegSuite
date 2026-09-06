@@ -4,3 +4,7 @@ __pycache__/
 stegsuite.db
 static/uploads/*
 !static/uploads/.gitkeep
+test*
+update_ui.py
+instance/
+vercel.json
