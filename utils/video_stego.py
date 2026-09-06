@@ -26,8 +26,8 @@ def encode_video(video_path, secret_message, output_path):
     frames_processed = 0
     bits_encoded = 0
     
-    # Use 0 for uncompressed AVI (guaranteed to work everywhere losslessly)
-    fourcc = 0
+    # 4cc codec - use FFV1 for lossless compression
+    fourcc = cv2.VideoWriter_fourcc(*'FFV1')
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
     
     while True:
