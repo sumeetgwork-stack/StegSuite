@@ -19,6 +19,8 @@ from utils.text_stego import (
 )
 
 app = Flask(__name__)
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'super-secret-key-change-in-prod')
 import platform
 if platform.system() == 'Linux':
@@ -126,28 +128,33 @@ def auth_google():
 
 @app.route('/auth/google/callback')
 def auth_google_callback():
-    token = google.authorize_access_token()
-    user_info = token.get('userinfo')
-    
-    if not user_info:
-        flash('Google authentication failed', 'error')
+    try:
+        token = google.authorize_access_token()
+        user_info = token.get('userinfo')
+        
+        if not user_info:
+            flash('Google authentication failed', 'error')
+            return redirect(url_for('login'))
+            
+        email = user_info['email']
+        name = user_info.get('name')
+        google_id = user_info['sub']
+        
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            user = User(email=email, name=name, google_id=google_id)
+            db.session.add(user)
+            db.session.commit()
+        elif not user.google_id:
+            user.google_id = google_id
+            db.session.commit()
+            
+        login_user(user)
+        return redirect(url_for('index'))
+    except Exception as e:
+        print(f"OAuth Error: {e}")
+        flash(f'Google login failed: {str(e)}', 'error')
         return redirect(url_for('login'))
-        
-    email = user_info['email']
-    name = user_info.get('name')
-    google_id = user_info['sub']
-    
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        user = User(email=email, name=name, google_id=google_id)
-        db.session.add(user)
-        db.session.commit()
-    elif not user.google_id:
-        user.google_id = google_id
-        db.session.commit()
-        
-    login_user(user)
-    return redirect(url_for('index'))
 
 # -------- STEGO PAGE ROUTES --------
 @app.route('/stego/<type>')
