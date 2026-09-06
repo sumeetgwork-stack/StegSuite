@@ -16,17 +16,18 @@ def binary_to_text(binary):
 # Method 1: Zero-Width Characters (Invisible)
 def encode_text_zwsp(cover_text, secret_message):
     """
-    Uses zero-width characters to hide bits.
-    Using ZWNJ (\u200C) and ZWJ (\u200D) because some mobile clipboards strip ZWSP (\u200B).
+    Uses invisible directional marks to hide bits.
+    Using LTR (\u200E) and RTL (\u200F) marks because mobile clipboards and 
+    apps like WhatsApp NEVER strip them (they are required for bidirectional text).
     """
     binary_secret = text_to_binary(secret_message)
     zwsp_chars = {
-        '0': '\u200C',  # Zero-width non-joiner
-        '1': '\u200D'   # Zero-width joiner
+        '0': '\u200E',  # Left-to-Right Mark
+        '1': '\u200F'   # Right-to-Left Mark
     }
     
     if len(cover_text) < len(binary_secret):
-        raise ValueError("Cover text too short for this message! (Need at least 1 character of cover text per 1 bit of secret message)")
+        raise ValueError("Cover text too short! Need at least 1 character of cover text per bit of secret message.")
     
     # Hide binary in between characters of cover text
     stego_text = ''
@@ -39,8 +40,8 @@ def encode_text_zwsp(cover_text, secret_message):
 
 def decode_text_zwsp(stego_text):
     zwsp_chars = {
-        '\u200C': '0',
-        '\u200D': '1'
+        '\u200E': '0',
+        '\u200F': '1'
     }
     
     binary = ''
